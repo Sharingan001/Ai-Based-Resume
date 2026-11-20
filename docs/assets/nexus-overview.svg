@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="660" viewBox="0 0 1440 660" role="img" aria-labelledby="title desc">
+  <title id="title">Nexus HR — clearer resume insights and two-way matching</title>
+  <desc id="desc">A dark teal interface illustration showing a synthetic Jane Example resume, Python and SQL skills, and two illustrative job match scores. Qwen extracts facts; deterministic scoring compares resumes and jobs. The displayed scores are demonstration values.</desc>
+  <defs>
+    <radialGradient id="ambient"><stop stop-color="#204d4b" stop-opacity=".55"/><stop offset="1" stop-color="#090c10" stop-opacity="0"/></radialGradient>
+    <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#192329"/><stop offset="1" stop-color="#0d1117"/></linearGradient>
+    <linearGradient id="line"><stop stop-color="#74ddd1"/><stop offset="1" stop-color="#9b8af0"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#c4dfeb" stroke-opacity=".035"/></pattern>
+  </defs>
+  <rect width="1440" height="660" rx="24" fill="#090c10"/>
+  <ellipse cx="1080" cy="220" rx="520" ry="450" fill="url(#ambient)"/>
+  <rect width="1440" height="660" rx="24" fill="url(#grid)"/>
+  <g font-family="Segoe UI,Arial,sans-serif">
+    <rect x="54" y="46" width="42" height="42" rx="12" fill="#7bdbd0"/>
+    <text x="66" y="76" font-size="28" font-weight="700" fill="#102121">N</text>
+    <text x="111" y="76" font-size="27" fill="#eef5f6" font-weight="650">Nexus HR</text>
+    <text x="54" y="150" font-size="15" letter-spacing="3" fill="#7bdbd0">LOCAL AI · VISIBLE REASONING</text>
+    <text x="50" y="222" font-size="57" letter-spacing="-2" fill="#f0f5f7">Less noise.</text>
+    <text x="50" y="286" font-size="57" letter-spacing="-2" fill="#a4b4c0">More human potential.</text>
+    <text x="54" y="337" font-size="20" fill="#9daeb9">Extract resume facts. Compare roles.</text>
+    <text x="54" y="369" font-size="20" fill="#9daeb9">Keep the decision in your hands.</text>
+    <rect x="54" y="409" width="206" height="51" rx="8" fill="#dcefeb"/>
+    <text x="80" y="442" font-size="18" fill="#142622" font-weight="600">Resume → jobs</text>
+    <rect x="274" y="409" width="226" height="51" rx="8" fill="#152022" stroke="#38524e"/>
+    <text x="301" y="442" font-size="18" fill="#d8e8e4">Job → candidates</text>
+    <path d="M54 534C130 536 151 486 212 494S292 555 350 512S429 467 492 482" fill="none" stroke="url(#line)" stroke-width="2.5"/>
+    <text x="54" y="596" font-size="14" fill="#8c9ba8" letter-spacing="1">QWEN + FASTAPI + REACT + SQLITE</text>
+    <rect x="704" y="99" width="678" height="475" rx="20" fill="url(#glass)" stroke="#344247"/>
+    <path d="M704 157H1382" stroke="#344247"/>
+    <circle cx="733" cy="129" r="4" fill="#6fd6c8"/><circle cx="749" cy="129" r="4" fill="#707b92"/>
+    <text x="770" y="135" font-size="17" fill="#d8e3e8">Your resume matchups</text>
+    <rect x="729" y="183" width="207" height="304" rx="12" fill="#ffffff" fill-opacity=".025" stroke="#344247"/>
+    <text x="749" y="217" font-size="13" fill="#91a4af" letter-spacing="1">SELECTED RESUME</text>
+    <text x="749" y="256" font-size="22" fill="#eff4f6">Jane Example</text>
+    <text x="749" y="284" font-size="15" fill="#94a9b5">Synthetic profile</text>
+    <rect x="748" y="310" width="78" height="29" rx="7" fill="#64cabc" fill-opacity=".12"/>
+    <text x="761" y="330" font-size="14" fill="#9ee7db">Python</text>
+    <rect x="838" y="310" width="57" height="29" rx="7" fill="#64cabc" fill-opacity=".12"/>
+    <text x="849" y="330" font-size="14" fill="#9ee7db">SQL</text>
+    <path d="M749 362H915" stroke="#344247"/>
+    <text x="749" y="393" font-size="14" fill="#96a9b5">Source-text checks</text>
+    <text x="749" y="420" font-size="14" fill="#96a9b5">Extraction warnings</text>
+    <text x="749" y="447" font-size="14" fill="#96a9b5">Profile re-extraction</text>
+    <rect x="954" y="183" width="401" height="142" rx="12" fill="#ffffff" fill-opacity=".025" stroke="#344247"/>
+    <text x="977" y="219" font-size="20" fill="#e6eef1">Python Engineer</text>
+    <text x="1330" y="222" text-anchor="end" font-size="28" fill="#7bdbd0" font-weight="650">81.5</text>
+    <text x="977" y="252" font-size="14" fill="#97aab5">Text · skills · experience · education</text>
+    <rect x="977" y="273" width="350" height="5" rx="2" fill="#293438"/>
+    <rect x="977" y="273" width="285" height="5" rx="2" fill="#7bdbd0"/>
+    <text x="977" y="303" font-size="13" fill="#9dabb5">Matched: Python, SQL</text>
+    <rect x="954" y="344" width="401" height="143" rx="12" fill="#ffffff" fill-opacity=".025" stroke="#344247"/>
+    <text x="977" y="380" font-size="20" fill="#e6eef1">Data Analyst</text>
+    <text x="1330" y="383" text-anchor="end" font-size="28" fill="#a99ce1" font-weight="650">67.3</text>
+    <text x="977" y="413" font-size="14" fill="#97aab5">Compare fit and identify skill gaps</text>
+    <rect x="977" y="434" width="350" height="5" rx="2" fill="#293438"/>
+    <rect x="977" y="434" width="236" height="5" rx="2" fill="#a99ce1"/>
+    <text x="977" y="464" font-size="13" fill="#9dabb5">Missing: Tableau</text>
+    <text x="729" y="538" font-size="14" fill="#8fa1ad">Interface illustration · synthetic values · not a benchmark</text>
+  </g>
+</svg>

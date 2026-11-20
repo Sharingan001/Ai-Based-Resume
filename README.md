@@ -1,81 +1,211 @@
-# Nexus HR — AI-Based Resume Screening
+<div align="center">
 
-Local resume parsing, candidate management, job matching, and recruitment analytics using FastAPI, React, and Ollama.
+# Nexus HR
 
-## Run on Windows
+### A clearer view of talent. A more understandable match.
 
-Use Python 3.10+ and Node 22.12+ (or Node 20.19+). Ollama must be running for model extraction. The configured default is the installed `qwen3:4b-instruct` model.
+Local resume extraction, two-way job matching, and a glass-styled recruitment workspace.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r api/requirements.txt
-python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
+[![Project checks](https://github.com/Sharingan001/Ai-Based-Resume/actions/workflows/ci.yml/badge.svg)](https://github.com/Sharingan001/Ai-Based-Resume/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](api/requirements.txt)
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](frontend/package.json)
+[![Qwen](https://img.shields.io/badge/Local_AI-Qwen3_4B_Instruct-7364D2)](https://ollama.com/library/qwen3:4b-instruct)
+[![License: MIT](https://img.shields.io/badge/License-MIT-55BBA7)](LICENSE)
+
+[Quick start](#quick-start) · [Interactive workspace](#interactive-workspace) · [Architecture](#architecture) · [Scoring](#how-matching-is-scored) · [API](#api-reference) · [Troubleshooting](#troubleshooting)
+
+</div>
+
+![Nexus HR interface illustration: synthetic resume details, two-way matching, and transparent job scores](docs/assets/nexus-overview.svg)
+
+*Interface illustration using synthetic profile data and demonstration scores. It does not contain uploaded resumes or measured accuracy results.*
+
+## What the project does
+
+Nexus HR turns a PDF, DOCX, or TXT resume into a structured candidate profile, then helps you compare that profile with job requirements. Qwen extracts resume facts locally through Ollama. A separate, deterministic scoring engine compares resume text, skills, experience, and education with a job.
+
+The workspace supports two distinct questions:
+
+| Your question | Matching mode | What appears |
+| --- | --- | --- |
+| “Which roles match my resume?” | **My resume → jobs** | Select an uploaded resume and compare its scores across active jobs, up to 100 results. |
+| “Which uploaded resumes fit this role?” | **Job → candidates** | Select a job and rank uploaded resumes; optionally include the complete candidate pool. |
+
+A low score remains visible in the resume-to-jobs view. A resume should not disappear simply because demonstration candidates outrank it.
+
+## What makes this implementation distinctive
+
+| Design choice | Practical value | Implementation |
+| --- | --- | --- |
+| **Two-way matching** | Applicants can explore roles; recruiters can compare candidates. | Resume-specific and job-specific API flows. |
+| **Source-grounded extraction** | Unsupported generated names, employers, skills, and education fields are omitted. | Pydantic schema plus source-text checks. |
+| **Honest unknowns** | Missing details stay unknown rather than becoming invented qualifications. | Empty fields, extraction warnings, and parser provenance. |
+| **Local model inference** | The configured extraction path calls local Ollama. | Official `qwen3:4b-instruct`; no hosted LLM API key required. |
+| **Visible score components** | Readers can inspect why a score is high or low. | Text, skill, experience, and education breakdowns; matched/missing skills. |
+| **Recoverable extraction** | Reprocess a stored resume after improving the model or parser. | **Re-extract with Qwen** preserves the candidate ID and workflow status. |
+| **Transactional state** | Candidate/job changes are persisted together. | SQLite state snapshot; synchronized in-memory search index. |
+| **Independent C++ score utility** | Demonstrates the weighted-score calculation outside Python. | C++17 CLI with input validation and parity tests. |
+
+These are implementation characteristics, not claims that the project is unique across all recruiting products. Scores are heuristics, not hiring recommendations or probabilities.
+
+## Interactive workspace
+
+| Screen | Interactions | Result |
+| --- | --- | --- |
+| **Dashboard** | Open upload, matching, and analytics actions. | Candidate/job totals and category statistics. |
+| **AI Screening** | Drop or select resumes; inspect warnings and parsed fields. | Structured profiles with links to their own job matchups. |
+| **Candidate profile** | Review experience/education, change status, re-extract the source. | Updated profile with visible extraction provenance. |
+| **My resume → jobs** | Switch resumes, run matching, filter by job title, department, or skill. | Sorted role scores with matched and missing skills. |
+| **Job → candidates** | Select a job, choose uploaded/all candidates, change Top-N, export CSV. | Candidate ranking within the selected pool. |
+| **Job Descriptions** | Create a role and add required/preferred skills. | A new active job available for matching. |
+| **Analytics** | Inspect chart tooltips and candidate distributions. | A view of the stored talent pool. |
+| **Settings** | Change appearance, save browser preferences, test an API URL. | Browser-local preferences and backend/model health information. |
+
+### Motion and visual design
+
+- Translucent navigation, cards, tables, controls, and dialogs with restrained teal/violet accents.
+- Page transitions, staggered entrances, hover sheen, and dialog entrance animations.
+- Responsive navigation and layouts for narrow screens.
+- Reduced-motion overrides for ambient movement and decorative transitions.
+- Static blur concentrated in navigation and dialogs rather than animated blur across every card.
+
+The repository illustration above is static; explore the running app to see interactions and motion.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    User[User] --> UI[React and TypeScript workspace]
+    UI -->|HTTP requests| API[FastAPI]
+    API --> Parse[PDF / DOCX / TXT text extraction]
+    Parse --> Qwen[Local Ollama / Qwen3 4B Instruct]
+    Qwen --> Validate[Schema and source-text checks]
+    Validate --> State[(SQLite application state)]
+    API --> Match[TF-IDF and weighted scoring]
+    State --> Index[In-memory resume index]
+    Index --> Match
+    Match -->|Scores and skill gaps| UI
+    API <-->|Transactional updates| State
 ```
 
-In another terminal:
+| Layer | Technology | Responsibility |
+| --- | --- | --- |
+| Interface | React 19, TypeScript, Vite | Routes, candidate views, and matching interactions. |
+| UI state | TanStack Query, Axios | Data loading, refreshing, and API requests. |
+| Presentation | Tailwind CSS, Framer Motion, Recharts | Styling, motion, and charts. |
+| API | FastAPI, Pydantic | Request validation and application operations. |
+| Extraction | Ollama, Qwen3 4B Instruct | Structured resume-field extraction. |
+| Document reading | pypdf, python-docx | PDF text, DOCX paragraphs, and table text. |
+| Matching | scikit-learn | TF-IDF cosine similarity and feature scoring. |
+| Persistence | SQLite | Local candidate/job state. |
+| Optional CLI | C++17 | Weighted final score from four input components. |
 
-```powershell
-cd frontend
-npm ci
-npm run dev
+## From upload to matchup
+
+```mermaid
+sequenceDiagram
+    actor Person
+    participant UI as React workspace
+    participant API as FastAPI
+    participant LLM as Local Ollama
+    participant DB as SQLite
+    Person->>UI: Upload resume
+    UI->>API: POST /api/upload
+    API->>API: Read bounded file and extract text
+    API->>LLM: Request schema-constrained resume facts
+    LLM-->>API: Structured output
+    API->>API: Validate and check text fields against source
+    API->>API: Rebuild synchronized resume index
+    API->>DB: Commit candidate state
+    API-->>UI: Profile, parser method, and warnings
+    Person->>UI: Open this resume's job matches
+    UI->>API: GET /api/candidates/{id}/matches
+    API->>API: Compare selected resume with active jobs
+    API-->>UI: Sorted scores and matched/missing skills
 ```
 
-Open http://localhost:5173. `start.bat` creates a project `.venv`, installs dependencies when manifests change, starts Ollama if needed, then starts both services and opens the browser. It reuses healthy services already running. Keep one backend process: multiple independent workers are not supported by the in-memory search index.
+If model extraction is unavailable or invalid, new uploads can use a regex fallback with a manual-review warning. A failed **re-extraction** preserves the existing profile instead of replacing it with fallback data.
 
-## Ollama configuration
+## How matching is scored
 
-```powershell
-ollama list
-$env:OLLAMA_MODEL = "qwen3:4b-instruct"
-$env:OLLAMA_URL = "http://localhost:11434"
+```mermaid
+pie showData
+    title Final score component weights
+    "TF-IDF text similarity" : 55
+    "Skill overlap" : 25
+    "Experience" : 10
+    "Education" : 10
 ```
 
-Set these before starting the API. Install another model using `ollama pull MODEL` and set `OLLAMA_MODEL` accordingly. Valid structured model output is preferred; connection, timeout, and schema failures use a regex fallback. Upload responses identify which parser actually ran. Very long resumes are marked `partial_parse` if processed from the first and last 8,000 characters. PDFs must contain extractable text; OCR and legacy binary `.doc` are not supported. DOCX tables are included.
-
-## Persistence and datasets
-
-On first startup, JSON files seed the in-memory candidate/job pool. All subsequent edits are saved together in `api/state.sqlite3` using a transaction. Restarting loads SQLite state first. Back up this file before migrating or replacing it. Seed JSON files are preserved by normal application use.
-
-If you use the legacy seed candidate data, it contains demonstration identities, contact details, and workflow statuses that cannot be verified from raw resumes. Treat existing records as demonstration data. Ranking is heuristic and has not been validated as a hiring decision model. The pipeline timeline is explicitly labeled demo; employer/role charts describe candidate history. Time-savings metrics are unmeasured.
-
-The original CSV files contain 2,484 resume rows and 853 job-description rows. To generate only missing JSON seeds:
-
-```powershell
-python api/preprocess.py
+```text
+Final score = 0.55 × text similarity
+            + 0.25 × skill overlap
+            + 0.10 × experience
+            + 0.10 × education
 ```
 
-To deliberately regenerate a seed, use `--only jobs --replace` or `--only candidates --replace`. Existing files receive `.bak` copies. This does not overwrite runtime SQLite state. Model-based batch preprocessing can take hours and should not be used for normal startup.
+Each component is on a 0–100 scale. The final score is capped at 99.9 and uses half-up rounding to one decimal place.
 
-## Matching and settings
+| Component | Current calculation | Interpretation |
+| --- | --- | --- |
+| Text similarity | Resume-fitted TF-IDF, English stop words, unigrams/bigrams, up to 8,000 features, cosine similarity. | Vocabulary overlap; this is not an embedding-based understanding model. |
+| Skills | Exact, case-insensitive overlap with the job's listed skills. Required/preferred skills contribute 80/20 when both exist. | Skill aliases and differently worded equivalents may not match. |
+| Experience | Extracted years relative to the first numeric year requirement, capped at 100. | A heuristic; complex job requirements are not fully interpreted. |
+| Education | Deterministic degree-keyword score. | A simple degree-level heuristic, not a job-specific qualification check. |
 
-Ranking uses 55% TF-IDF cosine similarity, 25% skill overlap, 10% experience against the selected job requirement, and 10% education. Required/preferred skills use 80/20 weighting when both are present. An absent skill component transfers its weight to the remaining one. Scores are not probabilities.
+When only one skill group exists, it receives the entire skill component. If neither group exists, the skill component is 50.
 
-Profile, notification preferences, API URL, and appearance are saved in this browser. Reload after changing the API URL. Notification delivery, account management, password changes, and 2FA are not implemented; account controls are disabled. This is a local application without user accounts.
+<details>
+<summary><strong>Worked example: reproduce a final score</strong></summary>
 
-## Shared access
+Given text similarity **80**, skills **100**, experience **50**, and education **75**:
 
-The launcher binds to loopback. Do not expose the API publicly as a multi-user HR service. Optional `NEXUS_API_TOKEN` on the server and matching `VITE_API_TOKEN` on the frontend protect API requests for a trusted shared instance; the frontend token is visible to its users and is not a user identity or role system. Configure `CORS_ORIGINS` for the frontend origin. Full user authentication, audit logs, and tenant isolation require separate work.
-
-## Checks and C++
-
-```powershell
-python -m pip install -r api/requirements-dev.txt
-python -m unittest discover -s tests -v
-npm run build --prefix frontend
-npm run lint --prefix frontend
+```text
+0.55 × 80 + 0.25 × 100 + 0.10 × 50 + 0.10 × 75 = 81.5
 ```
 
-See [cpp/README.md](cpp/README.md) for the optional C++17 final-score CLI and CMake tests. The Python API remains responsible for parsing and TF-IDF. The C++ utility takes four numeric score components.
+After building the optional C++ executable:
 
-`Resume.ipynb` and `resume.py` are exploratory alternatives with different scoring. Install root `requirements.txt` for those tools. The notebook downloads NLTK corpora; it is not the deployed classifier.
+```powershell
+.\cpp\build\nexus_score.exe 80 100 50 75
+# 81.5
+```
 
-See [PROJECT_REVIEW.md](PROJECT_REVIEW.md) for the original audit and [FIXES.md](FIXES.md) for implementation/verification notes.
+This is a mathematical example, not an evaluation of a real candidate.
 
+</details>
 
-## Windows launcher options
+## Quick start
 
-Double-click `start.bat`, or run these from a terminal:
+### Requirements
+
+- **Python 3.10+**; GitHub Actions tests Python 3.12.
+- **Node.js 22.12+** recommended; Node 20.19+ is also supported by the launcher.
+- **Ollama** with `qwen3:4b-instruct` downloaded.
+- A C++17 compiler only if you want the optional score CLI.
+
+### Windows: launch the complete app
+
+```powershell
+git clone https://github.com/Sharingan001/Ai-Based-Resume.git
+cd Ai-Based-Resume
+ollama pull qwen3:4b-instruct
+.\start.bat
+```
+
+The launcher creates `.venv`, installs dependencies when manifests change, starts local Ollama when necessary, verifies the model, waits for API/frontend readiness, and opens the browser. Healthy existing services are reused.
+
+| Service | Default address |
+| --- | --- |
+| Web workspace | [http://127.0.0.1:5173](http://127.0.0.1:5173) |
+| API health | [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health) |
+| Interactive API docs | [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) |
+| Ollama | `http://localhost:11434` |
+
+**A fresh checkout has no private resumes or preloaded job database.** First create a job under **Job Descriptions**, upload a resume under **AI Screening**, then choose **See this resume's job matches**.
+
+<details>
+<summary><strong>Launcher options and logs</strong></summary>
 
 ```powershell
 .\start.bat --no-browser
@@ -83,37 +213,242 @@ Double-click `start.bat`, or run these from a terminal:
 .\start.bat --no-browser --build-cpp
 ```
 
-The launcher uses Python and respects Windows script execution policy. It checks the configured Ollama model without automatically downloading models. Logs are written to `.runtime`. It binds the API and frontend to loopback, reports port conflicts, and waits for readiness. Existing datasets are never regenerated during startup. First launch can take several minutes while dependencies install. Close the services using their owning process when finished; closing the launcher does not stop them.
+- `--no-browser`: run without opening a browser tab.
+- `--check-only`: print environment/service status and verify the configured Ollama model.
+- `--build-cpp`: also compile and smoke-test the optional C++ utility.
+- Startup logs live in `.runtime/`; the launcher reports failures and port conflicts.
+- Existing datasets are not regenerated during startup.
+- Closing the launcher does not stop the background servers.
 
+</details>
 
-## Qwen extraction (20 November 2026)
+<details>
+<summary><strong>Manual startup: Windows, macOS, or Linux</strong></summary>
 
-The default model is official `qwen3:4b-instruct` (Q4_K_M, 2.5 GB). It replaced the custom `qwen-claude-9b-quality:latest` model. Other installed model tags are not used by this project. Configuration uses an 8,192-token context, deterministic decoding, a JSON schema, and one generation at a time to reduce GPU contention. This is inference configuration, not fine-tuning.
+Start Ollama if its service is not already running:
 
-Extracted names, employers, titles, skills and education are checked against source text; unsupported text fields are omitted. Contact details are copied from source matches. Experience uses explicitly stated years or merged dated work intervals. These checks reduce invention but cannot verify whether a resume itself is truthful or resolve every ambiguous layout. Empty/unknown fields and extraction warnings are intentional.
-
-Existing profiles are not automatically corrected by changing the model. Open a candidate profile and choose **Re-extract with Qwen** to reprocess its stored resume. The candidate ID, status and application date are preserved. If model extraction fails, the original profile remains intact. Long resumes retain the first and last 8,000 characters and display a partial-extraction warning.
-
-Ranking continues to use TF-IDF and deterministic scoring; Qwen extracts resume facts. The profile sidebar displays recorded facts and extraction provenance rather than an invented AI recommendation.
-
-
-## Finding your resume's job matches
-
-Open **AI Ranking → My resume → jobs**. Your latest uploaded resume is selected automatically; use Resume to match to select another. Every active job receives a visible score, including low scores. Filter by title, department or skill. Upload results and candidate profiles also have direct matching links.
-
-For recruiting comparisons, switch to **Job → candidates**, select a job, and choose Uploaded resumes only or the complete pool. Top-N applies inside that selected pool. Qwen extracts the resume facts; this comparison uses TF-IDF and deterministic scoring. A small score does not mean the resume failed to upload.
-
-
-## GitHub checkout
-
-```powershell
-git clone https://github.com/Sharingan001/Ai-Based-Resume.git
-cd Ai-Based-Resume
-.\start.bat
+```text
+ollama serve
 ```
 
-Resume datasets, uploaded documents, runtime SQLite databases, `.env` files and installed models are intentionally excluded from this repository. A fresh checkout starts with an empty talent pool and job list: create a job in Job Descriptions, then upload your own resume under AI Screening. Install Ollama and run `ollama pull qwen3:4b-instruct` before startup. Optional legacy CSV datasets must be supplied separately before running preprocessing or the exploratory notebook.
+In the project root, create a virtual environment and start the API:
 
-GitHub Actions builds the frontend and C++ utility and runs backend tests against synthetic fixtures. Unit tests do not require Ollama or private datasets. Live model checks performed locally are separate from CI.
+```text
+python -m venv .venv
+```
 
-The original project includes work by Harsha Vardhan Maradana; its MIT attribution is retained in LICENSE alongside this repository's existing attribution.
+Activate it using your platform's command:
+
+| Platform | Activation |
+| --- | --- |
+| Windows PowerShell | `.\.venv\Scripts\Activate.ps1` |
+| Windows Command Prompt | `.venv\Scripts\activate.bat` |
+| macOS / Linux | `source .venv/bin/activate` |
+
+```text
+python -m pip install -r api/requirements.txt
+python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
+```
+
+In another terminal:
+
+```text
+cd frontend
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
+```
+
+Use one backend process. Multiple independent workers are not supported by the in-memory search index.
+
+</details>
+
+## Qwen configuration and extraction safeguards
+
+The default is official [Qwen3 4B Instruct](https://ollama.com/library/qwen3:4b-instruct), using Ollama locally. Runtime settings use an **8,192-token context**, deterministic decoding, an output JSON schema, a 2,048-token generation limit, and one generation at a time to reduce GPU contention. This is inference configuration, not fine-tuning.
+
+| Safeguard | Behavior |
+| --- | --- |
+| Schema validation | Validates field types, arrays, and bounded experience. |
+| Source-text grounding | Omits generated text fields not found in the supplied source sections. |
+| Contact extraction | Copies email and phone matches from source text. |
+| Experience handling | Uses explicit year statements or merged dated employment intervals. |
+| Instruction handling | Excludes obvious instruction-like lines and reports a warning. |
+| Long resumes | Processes first/last 8,000 characters when the source exceeds 16,000; marks partial extraction. |
+| Provenance | Records parser method, model name, and extraction warnings. |
+
+These safeguards reduce unsupported output. They do not establish whether a resume is truthful, guarantee correct section associations, or provide general accuracy guarantees.
+
+<details>
+<summary><strong>Environment variables</strong></summary>
+
+Set backend variables before launching it:
+
+```powershell
+$env:OLLAMA_MODEL = "qwen3:4b-instruct"
+$env:OLLAMA_URL = "http://localhost:11434"
+```
+
+| Variable | Purpose |
+| --- | --- |
+| `OLLAMA_MODEL` | Installed Ollama model tag; default `qwen3:4b-instruct`. |
+| `OLLAMA_URL` | Ollama base URL. |
+| `NEXUS_STATE_DB` | Optional alternative SQLite state path. |
+| `CORS_ORIGINS` | Comma-separated allowed frontend origins. |
+| `NEXUS_API_TOKEN` | Optional shared-instance API token. |
+| `VITE_API_URL` | Frontend API base URL, including `/api`. |
+| `VITE_API_TOKEN` | Matching frontend token for a trusted shared instance. |
+
+`api/.env.example` is a reference and is not automatically loaded by the server. Vite reads its frontend environment files. The frontend API URL can also be saved in Settings; reload to apply it. A saved browser URL takes precedence over the build-time URL.
+
+A frontend token is visible to its users. It is not a user account, role system, or tenant boundary.
+
+</details>
+
+## API reference
+
+Explore request/response schemas at [the local Swagger UI](http://127.0.0.1:8000/docs).
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/health` | Data/index readiness, counts, and Ollama configuration/availability. |
+| `GET` | `/api/overview` | Talent-pool metrics and chart distributions. |
+| `GET`, `POST` | `/api/jobs` | List jobs or create a role. |
+| `GET` | `/api/jobs/{id}` | Inspect one job. |
+| `GET` | `/api/candidates` | Paginated list; search, category, status, and source filters. |
+| `GET` | `/api/candidates/stats` | Candidate status counts. |
+| `GET` | `/api/candidates/{id}` | Structured candidate profile. |
+| `PATCH` | `/api/candidates/{id}/status?status=Reviewed` | Change workflow stage. |
+| `POST` | `/api/upload` | Upload a PDF, DOCX, or TXT resume. |
+| `POST` | `/api/candidates/{id}/reparse` | Re-extract stored source text with Qwen. |
+| `GET` | `/api/candidates/{id}/matches?top_n=100` | Compare one resume with active jobs. |
+| `POST` | `/api/match` | Rank a candidate pool for a selected job. |
+
+<details>
+<summary><strong>Example: rank only uploaded resumes</strong></summary>
+
+Obtain a job ID from `GET /api/jobs`, then send:
+
+```json
+{
+  "job_id": "YOUR_JOB_ID",
+  "top_n": 20,
+  "source": "uploaded"
+}
+```
+
+`source` can be `uploaded` or `all`. The API defaults to `all` for compatibility; the job-ranking UI defaults to uploaded resumes. An optional `candidate_id` targets one resume. Top-N is limited to 1–100 and applies within the selected pool.
+
+</details>
+
+## Persistence, datasets, and privacy
+
+Candidate and job changes are stored together in `api/state.sqlite3` using a SQLite transaction. Startup loads this file first; if it is absent, optional JSON seed files are loaded. Without either, the app starts empty. Back up SQLite state before migrations or replacement.
+
+| Included in GitHub | Kept local / excluded |
+| --- | --- |
+| Application source and configuration examples | `.env` credentials and browser-local preferences |
+| Synthetic unit-test fixtures | Uploaded resumes and runtime SQLite state |
+| Sanitized exploratory notebook | Original CSV/ZIP datasets and structured seed databases |
+| C++ source, CI, and documentation | Installed models, `.venv`, `node_modules`, caches, and logs |
+
+Legacy source datasets had 2,484 resume rows and 853 job-description rows. They are not required to try the app and are not bundled in this repository. Some legacy seed identities, statuses, and requirements were demonstration data; do not treat them as verified operational facts.
+
+<details>
+<summary><strong>Optional legacy preprocessing and exploration</strong></summary>
+
+If you supply the corresponding CSV files yourself:
+
+```text
+python api/preprocess.py
+```
+
+This generates missing JSON seed files. Deliberate replacement uses `--only jobs --replace` or `--only candidates --replace`; existing seed files receive `.bak` copies. Runtime SQLite state is not replaced by seed generation.
+
+Batch model extraction may take hours. The launcher does not run it implicitly.
+
+`Resume.ipynb` and `resume.py` are exploratory alternatives with different scoring. Install root `requirements.txt` for their dependencies. The notebook downloads NLTK corpora; its classifier is not the deployed API model.
+
+</details>
+
+## Validation and CI
+
+The project has **21 test methods**, covering extraction/grounding, invalid documents, persistence, matching scopes, re-extraction, API-token behavior, and the C++ score utility. The C++ tests include eight boundary/invalid-input cases and 100 deterministic score comparisons.
+
+```powershell
+python -m pip install -r api/requirements-dev.txt
+python -m unittest discover -s tests -v
+npm ci --prefix frontend
+npm run build --prefix frontend
+npm run lint --prefix frontend
+npm audit --prefix frontend --audit-level=moderate
+```
+
+For C++, see [build instructions](cpp/README.md). Compile the utility before running its Python wrapper tests; otherwise those two methods are skipped. On Windows, the launcher supports `--build-cpp`. On Linux:
+
+```sh
+mkdir -p cpp/build
+g++ -std=c++17 -Wall -Wextra -Werror -O2 cpp/main.cpp -o cpp/build/nexus_score.exe
+```
+
+[GitHub Actions](https://github.com/Sharingan001/Ai-Based-Resume/actions/workflows/ci.yml) compiles C++, runs the tests on synthetic fixtures, builds/lints the frontend, and audits frontend dependencies. CI does not need Ollama or private datasets. Live model extraction and empty-database upload/matching were checked separately during development; that small fixture set is not a general accuracy benchmark.
+
+## Troubleshooting
+
+<details>
+<summary><strong>My resume does not appear in a job's top results</strong></summary>
+
+Use **AI Ranking → My resume → jobs** to compare your selected resume with roles. In **Job → candidates**, choose **Uploaded resumes only** so demonstration candidates do not crowd out your uploads. Low scores stay visible in the resume-to-jobs view. Check that at least one active job exists.
+
+</details>
+
+<details>
+<summary><strong>The extracted profile is incorrect or outdated</strong></summary>
+
+Open the profile, inspect its provenance/warnings, and choose **Re-extract with Qwen**. Changing the model does not automatically rewrite existing profiles. Successful re-extraction preserves the ID, status, application date, and category. A failed model attempt leaves the existing profile intact.
+
+</details>
+
+<details>
+<summary><strong>Ollama is unavailable or the configured model is missing</strong></summary>
+
+Check `ollama list`, download `qwen3:4b-instruct` if needed, and confirm the service is reachable at the configured URL. Use `start.bat --check-only` for diagnostics. New uploads may use a regex fallback with a review warning; re-extraction requires successful model output.
+
+</details>
+
+<details>
+<summary><strong>Uploads fail, services cannot start, or settings seem unchanged</strong></summary>
+
+- Maximum upload size is 5 MB. Use text-readable PDF, DOCX, or UTF-8 TXT.
+- Scanned/image-only PDFs need OCR elsewhere; binary `.doc` is unsupported.
+- Check `.runtime` startup logs and whether ports 8000/5173 are occupied.
+- Profile/preferences/API URL are browser-local. Reload after changing the API URL.
+- Account, password, 2FA, avatar, and notification-delivery features are not implemented.
+
+</details>
+
+## Current scope and limits
+
+This is a local project with one backend process. It has no complete user-authentication system, tenant isolation, audit-log product, OCR pipeline, or calibrated ranking-quality evaluation. The launcher binds to loopback. Optional shared-token protection is for trusted instances; public deployment requires additional work.
+
+The dashboard pipeline timeline is labeled demonstration data. Employer/role charts describe candidate history. Time savings are unmeasured. Text checks and transparent scoring help review; human judgment remains necessary.
+
+## Repository guide
+
+```text
+api/                   FastAPI, Qwen extraction, preprocessing
+frontend/src/          React pages, UI components, API client
+scripts/start.py       Windows launcher implementation
+start.bat              Double-click entry point
+cpp/                   Optional C++17 weighted-score utility
+tests/                 Synthetic fixtures and regression tests
+.github/workflows/     Continuous-integration checks
+docs/assets/           Public, synthetic documentation visuals
+Resume.ipynb           Sanitized exploratory notebook
+resume.py              Legacy Streamlit dashboard
+```
+
+See [PROJECT_REVIEW.md](PROJECT_REVIEW.md) for the original audit and [FIXES.md](FIXES.md) for implementation/verification notes.
+
+## License and acknowledgments
+
+[MIT License](LICENSE). The repository is maintained under **Sharingan001 / Ishan Munday**. Original project work by **Harsha Vardhan Maradana** is acknowledged; both copyright attributions are retained in the license.
