@@ -1,0 +1,186 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550;600;650;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%; /* #F7F8FA */
+    --foreground: 222.2 84% 4.9%; /* #111827 */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 174 65% 29%; /* Deep indigo/blue */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%; /* #667085 */
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%; /* Red */
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%; /* Green */
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%; /* Amber */
+    --warning-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%; /* #E4E7EC */
+    --input: 214.3 31.8% 91.4%;
+    --ring: 174 65% 29%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220 10% 4%;
+    --foreground: 210 12% 94%;
+    --card: 220 9% 6%;
+    --card-foreground: 210 12% 94%;
+    --popover: 220 9% 8%;
+    --popover-foreground: 210 12% 94%;
+    --primary: 173 58% 63%;
+    --primary-foreground: 220 15% 6%;
+    --secondary: 220 8% 11%;
+    --secondary-foreground: 210 12% 94%;
+    --muted: 220 8% 11%;
+    --muted-foreground: 220 6% 61%;
+    --accent: 220 8% 13%;
+    --accent-foreground: 210 12% 94%;
+    --destructive: 0 65% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 173 58% 63%;
+    --success-foreground: 220 15% 6%;
+    --warning: 38 85% 55%;
+    --warning-foreground: 220 15% 6%;
+    --border: 220 8% 16%;
+    --input: 220 8% 19%;
+    --ring: 173 58% 63%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* Custom Utilities for charts and minimal scrollbars */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+/* A restrained motion system: transform + opacity, with an accessible off switch. */
+:root { --ease-out: cubic-bezier(.22,1,.36,1); }
+html { scroll-behavior: smooth; }
+body { letter-spacing: -.015em; }
+::selection { background: hsl(173 58% 63% / .24); }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
+.ui-button { transition: transform 240ms var(--ease-out), background-color 240ms, border-color 240ms, box-shadow 240ms; }
+.ui-button:hover { transform: translateY(-2px); }
+.ui-button:active { transform: translateY(0) scale(.98); }
+.nexus-card { transition: border-color 300ms, box-shadow 300ms, transform 350ms var(--ease-out); }
+a:hover > .nexus-card { transform: translateY(-4px); box-shadow: 0 12px 35px hsl(0 0% 0% / .1); }
+input, select, textarea { transition: border-color 220ms, box-shadow 220ms; }
+.page-stage > div > * { animation: reveal-up 650ms var(--ease-out) both; }
+.page-stage > div > :nth-child(2) { animation-delay: 60ms; }
+.page-stage > div > :nth-child(3) { animation-delay: 110ms; }
+.page-stage > div > :nth-child(4) { animation-delay: 160ms; }
+@keyframes reveal-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.sidebar-link { position: relative; isolation: isolate; transition: color 220ms, background 220ms; }
+.sidebar-link:hover svg { transform: translateX(2px); }
+.sidebar-link svg { transition: transform 300ms var(--ease-out); }
+.sidebar-active { position: absolute; inset: 0; z-index: -1; border-radius: 8px; background: hsl(var(--primary) / .08); border: 1px solid hsl(var(--primary) / .15); }
+.app-sidebar { background: hsl(var(--card)); }
+.demo-note { border-left: 2px solid hsl(var(--primary) / .55); color: hsl(var(--muted-foreground)); padding: 8px 12px; font-size: 12px; line-height: 1.6; }
+.landing { color: hsl(var(--foreground)); background: hsl(var(--background)); overflow: hidden; }
+.landing-wrap { width: min(1200px, calc(100% - 48px)); margin-inline: auto; }
+.landing-nav { height: 86px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid hsl(var(--border)); }
+.brand-mark { width: 31px; height: 31px; display: grid; place-items: center; border: 1px solid hsl(var(--border)); border-radius: 9px; font-size: 15px; font-weight: 650; color: hsl(var(--primary)); }
+.eyebrow { font: 11px/1.5 ui-monospace, monospace; letter-spacing: .13em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+.landing-hero { padding-top: 108px; padding-bottom: 64px; }
+.landing-hero h1 { font-size: clamp(44px, 6.5vw, 82px); line-height: 1.04; letter-spacing: -.065em; font-weight: 500; max-width: 950px; margin-top: 24px; }
+.landing-hero h1 span { color: hsl(var(--muted-foreground)); }
+.landing-hero p { max-width: 560px; font-size: 17px; line-height: 1.75; margin-top: 26px; color: hsl(var(--muted-foreground)); }
+.hero-actions { display: flex; gap: 12px; margin-top: 32px; }
+.landing .primary-cta { background: #f2f3f3; color: #111; border-radius: 5px; }
+.landing .primary-cta:hover { background: #fff; }
+.signal-panel { border: 1px solid hsl(var(--border)); border-radius: 10px; overflow: hidden; background: #090b0c; }
+.signal-panel-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 22px; border-bottom: 1px solid hsl(var(--border)); }
+.signal-grid { display: grid; grid-template-columns: 200px 1fr 240px; }
+.signal-stats { padding: 26px 22px; display: grid; gap: 30px; border-right: 1px solid hsl(var(--border)); }
+.signal-stat-value { font-size: 30px; letter-spacing: -.04em; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.signal-chart { padding: 28px 24px 12px; position: relative; min-width: 0; }
+.signal-chart svg { width: 100%; height: 240px; overflow: visible; }
+.chart-line { stroke-dasharray: 1100; stroke-dashoffset: 1100; animation: draw-line 2s var(--ease-out) 300ms forwards; }
+.chart-secondary { animation-delay: 600ms; }
+@keyframes draw-line { to { stroke-dashoffset: 0; } }
+.signal-summary { padding: 26px 22px; border-left: 1px solid hsl(var(--border)); }
+.signal-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-block: 18px; border-bottom: 1px solid hsl(var(--border)); font-size: 12px; }
+.signal-dot { height: 5px; width: 5px; background: #76c7bf; border-radius: 50%; display: inline-block; margin-right: 8px; }
+.landing-section { padding-block: 100px; border-bottom: 1px solid hsl(var(--border)); }
+.landing-section h2 { font-size: clamp(30px, 4vw, 48px); font-weight: 500; letter-spacing: -.05em; line-height: 1.15; }
+.feature-grid { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 44px; border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; }
+.feature-item { padding: 32px; border-right: 1px solid hsl(var(--border)); background: hsl(var(--card)); transition: background 300ms; }
+.feature-item:last-child { border-right: 0; }
+.feature-item:hover { background: hsl(var(--accent)); }
+.feature-item h3 { font-size: 19px; font-weight: 500; letter-spacing: -.025em; margin-top: 30px; }
+.feature-item p { font-size: 14px; line-height: 1.8; color: hsl(var(--muted-foreground)); margin-top: 12px; }
+.landing-footer { padding-block: 30px; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; color: hsl(var(--muted-foreground)); font-size: 12px; }
+@media (max-width: 900px) { .signal-grid { grid-template-columns: 150px 1fr; } .signal-summary { display: none; } }
+@media (max-width: 640px) { .landing-wrap { width: calc(100% - 32px); } .landing-hero { padding-top: 64px; } .landing-nav { height: 72px; } .signal-grid { grid-template-columns: 1fr; } .signal-stats { grid-template-columns: repeat(3,1fr); border-right: 0; border-bottom: 1px solid hsl(var(--border)); gap: 12px; padding: 20px 16px; } .signal-stat-value { font-size: 25px; } .signal-stats .eyebrow { font-size: 9px; } .signal-chart { padding-inline: 16px; } .feature-grid { grid-template-columns: 1fr; } .feature-item { border-right: 0; border-bottom: 1px solid hsl(var(--border)); } .feature-item:last-child { border-bottom: 0; } .landing-section { padding-block: 64px; } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
+  .chart-line { stroke-dashoffset: 0; }
+}
+
+/* Glass surfaces share one restrained ambient layer; no expensive animated blur. */
+.glass-workspace { isolation: isolate; position: relative; }
+.ambient-light { position: fixed; z-index: -1; pointer-events: none; inset: 0; background: radial-gradient(ellipse at 78% 4%, hsl(173 65% 50% / .08), transparent 42%), radial-gradient(ellipse at 24% 80%, hsl(255 75% 65% / .07), transparent 48%); }
+.glass-workspace::before { content: ""; position: fixed; width: 45vw; height: 45vw; min-width: 300px; min-height: 300px; pointer-events: none; right: -10vw; top: 10vh; z-index: -1; background: radial-gradient(ellipse, hsl(173 65% 50% / .045), transparent 68%); animation: ambient-drift 22s ease-in-out infinite alternate; }
+@keyframes ambient-drift { from { transform: translate3d(0,0,0); } to { transform: translate3d(-8vw,12vh,0); } }
+.nexus-card { position: relative; overflow: hidden; background: linear-gradient(135deg, hsl(var(--card) / .93), hsl(var(--card) / .76)); border-color: hsl(var(--foreground) / .095); box-shadow: inset 0 1px 0 hsl(var(--foreground) / .035), 0 8px 35px hsl(0 0% 0% / .035); }
+.nexus-card::after { content: ""; position: absolute; pointer-events: none; inset: 0; border-radius: inherit; background: linear-gradient(115deg, transparent 20%, hsl(var(--foreground) / .035) 45%, transparent 70%); transform: translateX(-115%); transition: transform 850ms var(--ease-out); }
+@media (hover: hover) { .nexus-card:hover::after { transform: translateX(115%); } .nexus-card:hover { border-color: hsl(var(--primary) / .24); box-shadow: inset 0 1px 0 hsl(var(--primary) / .09), 0 12px 35px hsl(0 0% 0% / .06); } }
+.app-sidebar { background: hsl(var(--card) / .78); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.glass-workspace header { background: hsl(var(--background) / .7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: hsl(var(--foreground) / .075); }
+.glass-workspace main { position: relative; }
+.glass-workspace .ui-button { box-shadow: inset 0 1px 0 hsl(var(--foreground) / .07); }
+.glass-workspace input, .glass-workspace select, .glass-workspace textarea { background-color: hsl(var(--card) / .64); border-color: hsl(var(--foreground) / .12); }
+.glass-table { background: hsl(var(--card) / .74); box-shadow: inset 0 1px 0 hsl(var(--foreground) / .035); }
+.glass-table tbody tr { transition: background-color 220ms ease; }
+.glass-table tbody tr:hover { background: hsl(var(--primary) / .045); }
+.glass-modal { animation: glass-fade 240ms ease both; }
+.glass-modal > div { background: hsl(var(--card) / .94); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 30px 90px hsl(0 0% 0% / .3), inset 0 1px 0 hsl(var(--foreground) / .1); animation: glass-dialog-in 420ms var(--ease-out) both; }
+@keyframes glass-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes glass-dialog-in { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.landing { background: radial-gradient(ellipse at 82% 20%, #73c9c908, transparent 45%), radial-gradient(ellipse at 5% 65%, #9879dc08, transparent 40%), hsl(var(--background)); }
+.signal-panel { background: linear-gradient(125deg, #111819ad, #090b0ce6); box-shadow: inset 0 1px 0 #ffffff09, 0 24px 80px #00000020; }
+.feature-item { background: linear-gradient(140deg, hsl(var(--card) / .85), hsl(var(--card) / .55)); }
+@supports not (backdrop-filter: blur(1px)) { .app-sidebar, .glass-workspace header, .glass-modal > div { background: hsl(var(--card)); } }
+@media (prefers-reduced-motion: reduce) { .glass-workspace::before { animation: none; } .nexus-card::after { transition: none; display: none; } .glass-modal, .glass-modal > div { animation: none; } }

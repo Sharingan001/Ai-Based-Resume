@@ -1,0 +1,47 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# Data – never commit large CSV/JSON files to git
+Resume.csv
+Resume.csv.zip
+training_data.csv
+api/database.json
+api/jobs_database.json
+__MACOSX/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+api/state.sqlite3*
+*.bak
+cpp/build/
+
+.runtime/
+
+# Local/private artifacts
+*.tsbuildinfo
+*.log
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+.DS_Store
+uploads/
