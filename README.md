@@ -73,20 +73,7 @@ The repository illustration above is static; explore the running app to see inte
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    User[User] --> UI[React and TypeScript workspace]
-    UI -->|HTTP requests| API[FastAPI]
-    API --> Parse[PDF / DOCX / TXT text extraction]
-    Parse --> Qwen[Local Ollama / Qwen3 4B Instruct]
-    Qwen --> Validate[Schema and source-text checks]
-    Validate --> State[(SQLite application state)]
-    API --> Match[TF-IDF and weighted scoring]
-    State --> Index[In-memory resume index]
-    Index --> Match
-    Match -->|Scores and skill gaps| UI
-    API <-->|Transactional updates| State
-```
+![Architecture of local Qwen extraction, SQLite state, and TF-IDF matching](docs/assets/architecture.svg)
 
 | Layer | Technology | Responsibility |
 | --- | --- | --- |
@@ -102,40 +89,13 @@ flowchart LR
 
 ## From upload to matchup
 
-```mermaid
-sequenceDiagram
-    actor Person
-    participant UI as React workspace
-    participant API as FastAPI
-    participant LLM as Local Ollama
-    participant DB as SQLite
-    Person->>UI: Upload resume
-    UI->>API: POST /api/upload
-    API->>API: Read bounded file and extract text
-    API->>LLM: Request schema-constrained resume facts
-    LLM-->>API: Structured output
-    API->>API: Validate and check text fields against source
-    API->>API: Rebuild synchronized resume index
-    API->>DB: Commit candidate state
-    API-->>UI: Profile, parser method, and warnings
-    Person->>UI: Open this resume's job matches
-    UI->>API: GET /api/candidates/{id}/matches
-    API->>API: Compare selected resume with active jobs
-    API-->>UI: Sorted scores and matched/missing skills
-```
+![Six-step resume upload, validation, persistence, and job matching workflow](docs/assets/upload-workflow.svg)
 
 If model extraction is unavailable or invalid, new uploads can use a regex fallback with a manual-review warning. A failed **re-extraction** preserves the existing profile instead of replacing it with fallback data.
 
 ## How matching is scored
 
-```mermaid
-pie showData
-    title Final score component weights
-    "TF-IDF text similarity" : 55
-    "Skill overlap" : 25
-    "Experience" : 10
-    "Education" : 10
-```
+![Score weights: text 55%, skills 25%, experience 10%, education 10%](docs/assets/scoring-weights.svg)
 
 ```text
 Final score = 0.55 × text similarity
